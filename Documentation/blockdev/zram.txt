@@ -168,6 +168,7 @@ mem_limit         WO    specifies the maximum amount of memory ZRAM can use
 max_comp_streams  RW    the number of possible concurrent compress operations
 comp_algorithm    RW    show and change the compression algorithm
 compact           WO    trigger memory compaction
+debug_stat        RO    this file is used for zram debugging purposes
 backing_dev	  RW	set up backend storage for zram to write out
 
 
