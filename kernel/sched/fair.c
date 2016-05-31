@@ -36,6 +36,7 @@
 #include <trace/events/sched.h>
 #include "tune.h"
 #include "walt.h"
+
 /*
  * Targeted preemption latency for CPU-bound tasks:
  * (default: 6ms * (1 + ilog(ncpus)), units: nanoseconds)
