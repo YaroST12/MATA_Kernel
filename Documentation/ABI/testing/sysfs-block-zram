@@ -81,3 +81,11 @@ Description:
 		The mm_stat file is read-only and represents device's mm
 		statistics (orig_data_size, compr_data_size, etc.) in a format
 		similar to block layer statistics file format.
+
+What:		/sys/block/zram<id>/backing_dev
+Date:		June 2017
+Contact:	Minchan Kim <minchan@kernel.org>
+Description:
+		The backing_dev file is read-write and set up backing
+		device for zram to write incompressible pages.
+		For using, user should enable CONFIG_ZRAM_WRITEBACK.
