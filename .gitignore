@@ -119,3 +119,6 @@ all.config
 /out
 build.sh
 build_gcc.sh
+
+# Wireguard <3
+net/wireguard/
