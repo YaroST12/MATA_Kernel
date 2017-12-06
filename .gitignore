@@ -122,3 +122,5 @@ build.sh
 /build
 /out
 /out_gcc
+
+net/wireguard/
