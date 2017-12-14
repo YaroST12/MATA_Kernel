@@ -1960,6 +1960,9 @@ retry_private:
 		drop_count++;
 	}
 
+	if (nr_wake < 0 || nr_requeue < 0)
+		return -EINVAL;
+
 out_unlock:
 	free_pi_state(pi_state);
 	double_unlock_hb(hb1, hb2);
