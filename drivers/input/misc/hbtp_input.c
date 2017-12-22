@@ -1202,12 +1202,6 @@ static int hbtp_fb_suspend(struct hbtp_data *ts)
 			pr_err("%s: failed to disable GPIO pins\n", __func__);
 			goto err_pin_disable;
 		}
-
-		rc = hbtp_pdev_power_on(ts, false);
-		if (rc) {
-			pr_err("%s: failed to disable power\n", __func__);
-			goto err_power_disable;
-		}
 		ts->power_suspended = true;
 	}
 
@@ -1235,8 +1229,7 @@ static int hbtp_fb_suspend(struct hbtp_data *ts)
 
 	mutex_unlock(&hbtp->mutex);
 	return 0;
-err_power_disable:
-	hbtp_pinctrl_enable(ts, true);
+
 err_pin_disable:
 	mutex_unlock(&hbtp->mutex);
 	return rc;
@@ -1257,11 +1250,6 @@ static int hbtp_fb_early_resume(struct hbtp_data *ts)
 			pr_err("%s: power is not suspended\n", __func__);
 			mutex_unlock(&hbtp->mutex);
 			return 0;
-		}
-		rc = hbtp_pdev_power_on(ts, true);
-		if (rc) {
-			pr_err("%s: failed to enable panel power\n", __func__);
-			goto err_power_on;
 		}
 
 		rc = hbtp_pinctrl_enable(ts, true);
@@ -1310,8 +1298,6 @@ static int hbtp_fb_early_resume(struct hbtp_data *ts)
 
 err_pin_enable:
 	hbtp_pdev_power_on(ts, false);
-err_power_on:
-	mutex_unlock(&hbtp->mutex);
 	return rc;
 }
 
@@ -1396,6 +1382,12 @@ static int hbtp_pdev_probe(struct platform_device *pdev)
 			}
 		}
 		hbtp->vcc_dig = vcc_dig;
+	}
+
+	error = hbtp_pdev_power_on(hbtp, true);
+	if (error) {
+		pr_err("%s: failed to power on\n", __func__);
+		return error;
 	}
 
 	return 0;
