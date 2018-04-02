@@ -122,7 +122,7 @@ int qti_pfk_ice_set_key(uint32_t index, uint8_t *key, uint8_t *salt,
 		goto out;
 	}
 
-	ret = scm_call2(smc_id, &desc);
+	ret = scm_call2_noretry(smc_id, &desc);
 
 	pr_debug(" %s , ret = %d\n", __func__, ret);
 
@@ -178,7 +178,7 @@ int qti_pfk_ice_invalidate_key(uint32_t index, char *storage_type)
 		return ret;
 	}
 
-	ret = scm_call2(smc_id, &desc);
+	ret = scm_call2_noretry(smc_id, &desc);
 
 	if (ret) {
 		pr_err("%s: Error: 0x%x\n", __func__, ret);
