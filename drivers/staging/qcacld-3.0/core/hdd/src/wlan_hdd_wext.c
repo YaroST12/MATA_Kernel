@@ -4529,7 +4529,7 @@ static int iw_get_name(struct net_device *dev,
 	int ret;
 
 	cds_ssr_protect(__func__);
-	ret = __iw_get_name(dev, info, wrqu->name, extra);
+	ret = __iw_get_name(dev, info, wrqu, extra);
 	cds_ssr_unprotect(__func__);
 
 	return ret;
