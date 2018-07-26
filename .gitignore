@@ -112,3 +112,9 @@ all.config
 
 # Kdevelop4
 *.kdev4
+
+# Misc stuffery
+/build
+/out
+build.sh
+build_gcc.sh
