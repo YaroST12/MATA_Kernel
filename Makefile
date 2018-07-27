@@ -615,7 +615,7 @@ ifneq ($(GCC_TOOLCHAIN),)
 CLANG_GCC_TC	:= -gcc-toolchain $(GCC_TOOLCHAIN)
 endif
 # Optimization flags specific to clang
-CLANG_OPT_FLAGS := -O3 $(call cc-option, -fsanitize=local-init)
+CLANG_OPT_FLAGS := -O3
 KBUILD_CFLAGS += $(CLANG_TARGET) $(CLANG_GCC_TC) $(CLANG_OPT_FLAGS)
 KBUILD_AFLAGS += $(CLANG_TARGET) $(CLANG_GCC_TC)
 KBUILD_CPPFLAGS += $(call cc-option,-Qunused-arguments,)
