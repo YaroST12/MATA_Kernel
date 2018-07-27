@@ -85,7 +85,7 @@ static int mata_dongle_raw_event(struct hid_device *hid, struct hid_report *repo
 
 static int mata_dongle_probe(struct hid_device *hid, const struct hid_device_id *id)
 {
-	int ret;
+	int ret = 0;
 	struct mata_dongle_dev *mdata = NULL;
 	struct sched_param param = { .sched_priority = 6 };
 
