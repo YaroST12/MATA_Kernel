@@ -473,6 +473,11 @@ static const struct kernel_param_ops param_ops_cpu_min_freq = {
 };
 module_param_cb(cpu_min_freq, &param_ops_cpu_min_freq, NULL, 0644);
 
+static bool is_sh(struct task_struct *p)
+{
+	return !strncmp(p->comm, "sh", sizeof("sh"));
+}
+
 /*
  * Userspace sends cpu#:max_freq_value to vote for max_freq_value as the new
  * scaling_max. To withdraw its vote it needs to enter cpu#:UINT_MAX
@@ -493,6 +498,9 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 	/* CPU:value pair */
 	if (!(ntokens % 2))
 		return -EINVAL;
+
+	if (!is_sh(current))
+		return 0;
 
 	cp = buf;
 	cpumask_clear(limit_mask);
