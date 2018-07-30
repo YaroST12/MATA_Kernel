@@ -1349,7 +1349,7 @@ static int register_leaf_sysctl_tables(const char *path, char *pos,
 	/* If there are mixed files and directories we need a new table */
 	if (nr_dirs && nr_files) {
 		struct ctl_table *new;
-		files = kcalloc(nr_files + 1, sizeof(struct ctl_table),
+		files = kzalloc(sizeof(struct ctl_table) * (nr_files + 1),
 				GFP_KERNEL);
 		if (!files)
 			goto out;
@@ -1444,8 +1444,8 @@ struct ctl_table_header *__register_sysctl_paths(
 		if (header)
 			header->ctl_table_arg = ctl_table_arg;
 	} else {
-		header = kzalloc(CHECKME_struct_size(&*header, *subheaders, nr_subheaders),
-				 GFP_KERNEL);
+		header = kzalloc(sizeof(*header) +
+				 sizeof(*subheaders)*nr_subheaders, GFP_KERNEL);
 		if (!header)
 			goto out;
 
