@@ -193,7 +193,7 @@ int qcom_cc_really_probe(struct platform_device *pdev,
 	struct clk_hw **hw_clks = desc->hwclks;
 
 	cc = devm_kzalloc(dev,
-			  struct_size(cc, clks, (num_clks + desc->num_hwclks)),
+			  CHECKME_struct_size(&*cc, *clks, (num_clks + desc->num_hwclks)),
 			  GFP_KERNEL);
 	if (!cc)
 		return -ENOMEM;
