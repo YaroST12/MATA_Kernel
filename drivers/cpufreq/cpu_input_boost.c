@@ -44,14 +44,11 @@ static struct boost_drv *boost_drv_g;
 
 static u32 get_boost_freq(struct boost_drv *b, u32 cpu)
 {
-	int runnables = 0;
-
 	if (cpumask_test_cpu(cpu, cpu_lp_mask))
 		return CONFIG_INPUT_BOOST_FREQ_LP;
 
 	for (cpu; cpu < NR_CPUS; ++cpu) {
-		runnables += cpu_rq(cpu)->nr_running;
-		if (runnables)
+		if (cpu_rq(cpu)->nr_running)
 			return CONFIG_INPUT_BOOST_FREQ_PERF;
 	}
 	return 0;
