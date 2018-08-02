@@ -2694,8 +2694,7 @@ static int mdss_rotator_get_dt_vreg_data(struct device *dev,
 	const char *st = NULL;
 	struct device_node *of_node = NULL;
 	int dt_vreg_total = 0;
-	int i;
-	int rc;
+	int i = 0, rc = 0;
 
 	if (!dev || !mp) {
 		DEV_ERR("%s: invalid input\n", __func__);
