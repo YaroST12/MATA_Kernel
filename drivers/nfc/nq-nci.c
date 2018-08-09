@@ -1221,7 +1221,7 @@ static int nfcc_reboot(struct notifier_block *notifier, unsigned long val,
 
 static struct work_struct boot_work;
 
-static void __init nqx_dev_init_work(struct work_struct *work)
+static void nqx_dev_init_work(struct work_struct *work)
 {
 	i2c_add_driver(&nqx);
 }
