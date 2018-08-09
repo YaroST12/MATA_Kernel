@@ -777,7 +777,7 @@ static void its_lpi_free(struct event_lpi_map *map)
 
 #define LPI_PROP_DEFAULT_PRIO	0xa0
 
-static int its_alloc_lpi_tables(void)
+static int __init its_alloc_lpi_tables(void)
 {
 	phys_addr_t paddr;
 
@@ -1626,7 +1626,7 @@ static struct of_device_id its_device_id[] = {
 	{},
 };
 
-int __init its_init(struct device_node *node, struct rdists *rdists,
+int its_init(struct device_node *node, struct rdists *rdists,
 	     struct irq_domain *parent_domain)
 {
 	struct device_node *np;

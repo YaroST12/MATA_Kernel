@@ -2592,7 +2592,7 @@ exit_destroy_device:
 	return -EFAULT;
 }
 
-static int spcom_register_chardev(void)
+static int __init spcom_register_chardev(void)
 {
 	int ret;
 	unsigned baseminor = 0;
