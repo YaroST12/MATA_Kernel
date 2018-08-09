@@ -72,7 +72,7 @@ KBUILD_CFLAGS	+= -mllvm -polly \
 					-mllvm -polly-vectorizer=stripmine \
 					-mllvm -polly-detect-keep-going
 
-KBUILD_CFLAGS	+= -ffast-math
+KBUILD_CFLAGS	+= -ffast-math -finline-hint-functions
 KBUILD_CFLAGS	+= $(call clang-ifversion, -ge, 0600, -mgeneral-regs-only, -mno-implicit-float)
 else
 KBUILD_CFLAGS	+= -mgeneral-regs-only
