@@ -18,7 +18,6 @@
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/slab.h>
-#include "../../kernel/sched/sched.h"
 
 /* Available bits for boost_drv state */
 #define SCREEN_AWAKE		(1U << 0)
@@ -44,15 +43,10 @@ static struct boost_drv *boost_drv_g;
 
 static u32 get_boost_freq(struct boost_drv *b, u32 cpu)
 {
-	int i;
 	if (cpumask_test_cpu(cpu, cpu_lp_mask))
 		return CONFIG_INPUT_BOOST_FREQ_LP;
 
-	for (i = cpu; i < NR_CPUS; ++i) {
-		if (cpu_rq(i)->nr_running)
-			return CONFIG_INPUT_BOOST_FREQ_PERF;
-	}
-	return 0;
+	return CONFIG_INPUT_BOOST_FREQ_PERF;
 }
 
 static u32 get_boost_state(struct boost_drv *b)
