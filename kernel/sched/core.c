@@ -2338,6 +2338,21 @@ void sched_exit(struct task_struct *p)
 	task_rq_unlock(rq, p, &flags);
 	free_task_load_ptrs(p);
 }
+
+/**
+ * Function for checking if we have tasks on big cores.
+ * Can be rather handy for rejecting boost events if
+ * cpu load isn't really that high.
+ */
+bool inline tasks_on_big_cores(void)
+{
+	/* First big core on most MSM chips */
+	int i = NR_CPUS / 2;
+	for (i; i < NR_CPUS; ++i)
+		return cpu_rq(i)->nr_running;
+
+	return 0;
+}
 #endif /* CONFIG_SCHED_HMP */
 
 /*
