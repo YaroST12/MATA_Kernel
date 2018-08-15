@@ -117,6 +117,7 @@ all.config
 # Misc stuffery
 /build
 /out
+/out_gcc
 build.sh
 build_gcc.sh
 
