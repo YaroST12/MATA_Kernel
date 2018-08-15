@@ -2348,9 +2348,11 @@ bool inline tasks_on_big_cores(void)
 {
 	/* First big core on most MSM chips */
 	int i = NR_CPUS / 2;
-	for (i; i < NR_CPUS; ++i)
-		return cpu_rq(i)->nr_running;
-
+	for (i; i < NR_CPUS; ++i) {
+		if (!cpu_rq(i)->nr_running)
+			continue;
+		return 1;
+	}
 	return 0;
 }
 #endif /* CONFIG_SCHED_HMP */
