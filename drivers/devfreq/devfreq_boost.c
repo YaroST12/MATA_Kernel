@@ -16,7 +16,6 @@
 #include <linux/devfreq_boost.h>
 #include <linux/fb.h>
 #include <linux/input.h>
-#include "../../kernel/sched/sched.h"
 
 struct df_boost_drv {
 	struct boost_dev devices[DEVFREQ_MAX];
@@ -42,15 +41,11 @@ static void __devfreq_boost_kick(struct boost_dev *b)
 void devfreq_boost_kick(enum df_device device)
 {
 	struct df_boost_drv *d = df_boost_drv_g;
-	bool boost_needed = false;
 
 	if (!d)
 		return;
 
-	boost_needed = tasks_on_big_cores();
-
-	if (boost_needed)
-		__devfreq_boost_kick(d->devices + device);
+	__devfreq_boost_kick(d->devices + device);
 }
 
 static void __devfreq_boost_kick_max(struct boost_dev *b,
