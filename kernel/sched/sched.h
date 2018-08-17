@@ -430,7 +430,7 @@ struct cpu_cycle {
 #define for_each_sched_cluster(cluster) \
 	list_for_each_entry_rcu(cluster, &cluster_head, list)
 
-bool inline tasks_on_big_cores(void);
+bool inline load_on_big_cores(void);
 
 #endif /* CONFIG_SCHED_HMP */
 

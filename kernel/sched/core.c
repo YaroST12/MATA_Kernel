@@ -2340,20 +2340,22 @@ void sched_exit(struct task_struct *p)
 }
 
 /**
- * Function for checking if we have tasks on big cores.
- * Can be rather handy for rejecting boost events if
- * cpu load isn't really that high.
+ * Function for checking if we have "heavy" tasks
+ * on big cores. Can be rather handy for rejecting
+ * boost events if cpu load isn't really that high.
  */
-bool inline tasks_on_big_cores(void)
+bool inline load_on_big_cores(void)
 {
-	/* First big core on most MSM chips */
-	int i = NR_CPUS / 2;
-	for (i; i < NR_CPUS; ++i) {
-		if (!cpu_rq(i)->nr_running)
+	int i = 0, boost = false;
+	for (i = NR_CPUS / 2; i < NR_CPUS; ++i) {
+		if (cpu_util(i) < 250)
+		/* Skip to next core */
 			continue;
-		return 1;
+
+		boost = true;
+		break;
 	}
-	return 0;
+	return boost;
 }
 #endif /* CONFIG_SCHED_HMP */
 
