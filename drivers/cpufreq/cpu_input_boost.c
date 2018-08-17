@@ -47,7 +47,7 @@ static u32 get_boost_freq(struct boost_drv *b, u32 cpu)
 	if (cpumask_test_cpu(cpu, cpu_lp_mask))
 		return CONFIG_INPUT_BOOST_FREQ_LP;
 
-	if (tasks_on_big_cores())
+	if (load_on_big_cores())
 		return CONFIG_INPUT_BOOST_FREQ_PERF;
 	else
 		return 0;
