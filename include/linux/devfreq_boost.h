@@ -29,6 +29,7 @@ struct boost_dev {
 	struct delayed_work max_unboost;
 	unsigned long abs_min_freq;
 	unsigned long boost_freq;
+	unsigned long boost_freq_light;
 	unsigned long max_boost_expires;
 	unsigned long max_boost_jiffies;
 	bool disable;
