@@ -1396,6 +1396,10 @@
 			qcom,mitigation-freq-khz = <1248000>;
 		};
 	};
+
+	msm_gpu: qcom,kgsl-3d0@5000000 {
+		/delete-property/ qcom,no-nap;
+	};
 };
 
 &spmi_bus {
