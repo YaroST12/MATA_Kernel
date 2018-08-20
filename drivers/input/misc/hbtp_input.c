@@ -336,8 +336,7 @@ static void hbtp_touch_down(struct hbtp_data *hbtp_data,
 		ABS_MT_PRESSURE, tch->pressure);
 }
 
-static void hbtp_touch_up(struct hbtp_data *hbtp_data,
-				struct hbtp_input_touch *tch)
+static void hbtp_touch_up(struct hbtp_data *hbtp_data)
 {
 	input_mt_report_slot_state(hbtp_data->input_dev,
 						MT_TOOL_FINGER, false);
@@ -350,16 +349,14 @@ static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 
 	while (i < HBTP_MAX_FINGER) {
 		tch = &(mt_data->touches[i++]);
-		if (tch->active || hbtp_data->touch_status[i]) {
-			input_mt_slot(hbtp_data->input_dev, i);
+		input_mt_slot(hbtp_data->input_dev, i);
 
-			if (tch->active)
-				hbtp_touch_down(hbtp_data, tch);
-			else
-				hbtp_touch_up(hbtp_data, tch);
+		if (tch->active || hbtp_data->touch_status[i])
+			hbtp_touch_down(hbtp_data, tch);
+		else
+			hbtp_touch_up(hbtp_data);
 
-			hbtp_data->touch_status[i] = tch->active;
-		}
+		hbtp_data->touch_status[i] = tch->active;
 	}
 	input_sync(hbtp->input_dev);
 }
