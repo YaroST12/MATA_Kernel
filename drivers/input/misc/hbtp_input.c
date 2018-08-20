@@ -326,7 +326,7 @@ static void hbtp_touch_up(struct hbtp_data *hbtp_data,
 						MT_TOOL_FINGER, false);
 }
 
-static void inline hbtp_input_report_events(struct hbtp_data *hbtp_data,
+static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 				struct hbtp_input_mt *mt_data)
 {
 	int i = 0;
