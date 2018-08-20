@@ -98,7 +98,7 @@ struct hbtp_data {
 };
 
 static struct hbtp_data *hbtp;
-
+static struct hbtp_input_touch *tch;
 static struct kobject *sensor_kobject;
 
 #if defined(CONFIG_FB)
@@ -303,48 +303,48 @@ err_input_reg_dev:
 	return error;
 }
 
+static void hbtp_touch_down(struct hbtp_data *hbtp_data,
+				struct hbtp_input_touch *tch)
+{
+	input_mt_report_slot_state(hbtp_data->input_dev,
+		MT_TOOL_FINGER, true);
+	input_report_abs(hbtp_data->input_dev,
+		ABS_MT_POSITION_X, tch->x);
+	input_report_abs(hbtp_data->input_dev,
+		ABS_MT_POSITION_Y, tch->y);
+	input_report_abs(hbtp_data->input_dev,
+		ABS_MT_TOUCH_MAJOR, tch->major);
+	input_report_abs(hbtp_data->input_dev,
+		ABS_MT_TOUCH_MINOR, tch->minor);
+	input_report_abs(hbtp_data->input_dev,
+		ABS_MT_PRESSURE, tch->pressure);
+}
+
+static void hbtp_touch_up(struct hbtp_data *hbtp_data,
+				struct hbtp_input_touch *tch)
+{
+	input_mt_report_slot_state(hbtp_data->input_dev,
+						MT_TOOL_FINGER, false);
+}
+
 static void inline hbtp_input_report_events(struct hbtp_data *hbtp_data,
 				struct hbtp_input_mt *mt_data)
 {
 	int i = 0;
-	struct hbtp_input_touch *tch;
 
 	while (i < HBTP_MAX_FINGER) {
 		tch = &(mt_data->touches[i++]);
 		if (tch->active || hbtp_data->touch_status[i]) {
 			input_mt_slot(hbtp_data->input_dev, i);
 
-			if (tch->active) {
-				input_mt_report_slot_state(hbtp_data->input_dev,
-						MT_TOOL_FINGER, 1);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_TOOL_TYPE, 0);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_POSITION_X,
-						tch->x);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_POSITION_Y,
-						tch->y);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_TOUCH_MAJOR,
-						tch->major);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_TOUCH_MINOR,
-						tch->minor);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_ORIENTATION,
-						tch->orientation);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_PRESSURE,
-						tch->pressure);
-			} else {
-				input_mt_report_slot_state(hbtp_data->input_dev,
-						MT_TOOL_FINGER, 0);
-			}
+			if (tch->active)
+				hbtp_touch_down(hbtp_data, tch);
+			else
+				hbtp_touch_up(hbtp_data, tch);
+
 			hbtp_data->touch_status[i] = tch->active;
 		}
 	}
-
 	input_report_key(hbtp->input_dev, BTN_TOUCH, mt_data->num_touches > 0);
 	input_sync(hbtp->input_dev);
 }
