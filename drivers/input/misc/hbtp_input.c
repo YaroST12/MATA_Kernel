@@ -107,6 +107,20 @@ static int hbtp_fb_early_resume(struct hbtp_data *ts);
 static int hbtp_fb_resume(struct hbtp_data *ts);
 #endif
 
+void hbtp_daemon_nice(int nice)
+{
+	struct task_struct *p;
+
+	read_lock(&tasklist_lock);
+	for_each_process(p) {
+		if (!memcmp(p->comm, "hbtp", 4)) {
+			set_user_nice(p, nice);
+			break;
+		}
+	}
+	read_unlock(&tasklist_lock);
+}
+
 #if defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self,
 				 unsigned long event, void *data)
@@ -150,6 +164,7 @@ static int fb_notifier_callback(struct notifier_block *self,
 			if (blank <= FB_BLANK_NORMAL) {
 				pr_debug("%s: receives R_EARLY_BALNK:UNBLANK\n",
 					__func__);
+				hbtp_daemon_nice(0);
 				hbtp_fb_suspend(hbtp_data);
 			}
 		}
@@ -162,10 +177,12 @@ static int fb_notifier_callback(struct notifier_block *self,
 		if (blank == FB_BLANK_POWERDOWN &&
 			lcd_state <= FB_BLANK_NORMAL) {
 			pr_debug("%s: receives BLANK:POWERDOWN\n", __func__);
+			hbtp_daemon_nice(0);
 			hbtp_fb_suspend(hbtp_data);
 		} else if (blank <= FB_BLANK_NORMAL &&
 				lcd_state == FB_BLANK_POWERDOWN) {
 			pr_debug("%s: receives BLANK:UNBLANK\n", __func__);
+			hbtp_daemon_nice(-1);
 			hbtp_fb_resume(hbtp_data);
 		}
 		hbtp_data->lcd_state = blank;
