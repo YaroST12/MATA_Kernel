@@ -353,14 +353,10 @@ static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 		if (tch->active || hbtp_data->touch_status[i]) {
 			input_mt_slot(hbtp_data->input_dev, i);
 
-			/* Current here: DSPTouchProcess */
-			if (tch->active) {
-				set_user_nice(current, -1);
+			if (tch->active)
 				hbtp_touch_down(hbtp_data, tch);
-			} else {
+			else
 				hbtp_touch_up(hbtp_data, tch);
-				set_user_nice(current, 0);
-			}
 
 			hbtp_data->touch_status[i] = tch->active;
 		}
