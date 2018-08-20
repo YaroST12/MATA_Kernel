@@ -623,8 +623,6 @@ static inline long hbtp_input_ioctl_handler(struct file *file, unsigned int cmd,
 			return -EFAULT;
 		}
 
-		/* "Current" here: DSPTouchProcess */
-		set_user_nice(current, -(mt_data.num_touches + 1));
 		hbtp_input_report_events(hbtp, &mt_data);
 		/* We need to return here to avoid ugly code */
 		return 0;
