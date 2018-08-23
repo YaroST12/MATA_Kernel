@@ -351,6 +351,7 @@ static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 		tch = &(mt_data->touches[i++]);
 		input_mt_slot(hbtp_data->input_dev, i);
 
+		smp_wmb();
 		if (tch->active || hbtp_data->touch_status[i])
 			hbtp_touch_down(hbtp_data, tch);
 		else
