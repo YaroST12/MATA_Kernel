@@ -358,7 +358,7 @@ static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 			hbtp_touch_up(hbtp_data);
 
 		hbtp_data->touch_status[i] = tch->active;
-	} while (i < HBTP_MAX_FINGER);
+	} while (likely(i < HBTP_MAX_FINGER));
 
 	input_sync(hbtp->input_dev);
 }
