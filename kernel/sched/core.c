@@ -2344,7 +2344,7 @@ void sched_exit(struct task_struct *p)
  * on big cores. Can be rather handy for rejecting
  * boost events if cpu load isn't really that high.
  */
-bool inline load_on_big_cores(void)
+bool load_on_big_cores(void)
 {
 	int i = 0, boost = false;
 	for (i = NR_CPUS / 2; i < NR_CPUS; ++i) {
