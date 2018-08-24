@@ -2837,7 +2837,7 @@ static int uartdm_init_port(struct uart_port *uport)
 	/* Init kernel threads for tx and rx */
 
 	init_kthread_worker(&rx->kworker);
-	rx->task = kthread_run(kthread_worker_fn,
+	rx->task = kthread_run_perf_critical(kthread_worker_fn,
 			&rx->kworker, "msm_serial_hs_%d_rx_work", uport->line);
 	if (IS_ERR(rx->task)) {
 		MSM_HS_ERR("%s(): error creating task", __func__);
@@ -2846,7 +2846,7 @@ static int uartdm_init_port(struct uart_port *uport)
 	init_kthread_work(&rx->kwork, msm_serial_hs_rx_work);
 
 	init_kthread_worker(&tx->kworker);
-	tx->task = kthread_run(kthread_worker_fn,
+	tx->task = kthread_run_perf_critical(kthread_worker_fn,
 			&tx->kworker, "msm_serial_hs_%d_tx_work", uport->line);
 	if (IS_ERR(rx->task)) {
 		MSM_HS_ERR("%s(): error creating task", __func__);
