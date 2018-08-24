@@ -100,7 +100,6 @@ struct hbtp_data {
 static struct hbtp_data *hbtp;
 static struct hbtp_input_touch *tch;
 static struct kobject *sensor_kobject;
-struct task_struct *dsp;
 
 #if defined(CONFIG_FB)
 static int hbtp_fb_suspend(struct hbtp_data *ts);
@@ -112,7 +111,6 @@ void hbtp_daemon_nice(int nice)
 {
 	struct task_struct *p;
 
-	set_user_nice(dsp, nice);
 	read_lock(&tasklist_lock);
 	for_each_process(p) {
 		if (!memcmp(p->comm, "hbtp", 4)) {
@@ -640,9 +638,6 @@ static inline long hbtp_input_ioctl_handler(struct file *file, unsigned int cmd,
 			pr_err("%s: Error copying data\n", __func__);
 			return -EFAULT;
 		}
-
-		if (unlikely(!dsp))
-			dsp = current;
 
 		hbtp_input_report_events(hbtp, &mt_data);
 		/* We need to return here to avoid ugly code */
