@@ -376,7 +376,6 @@ static inline void hbtp_input_report_events(struct hbtp_data *hbtp_data,
 		tch = &(mt_data->touches[i++]);
 		input_mt_slot(hbtp_data->input_dev, i);
 
-		smp_wmb();
 		if (tch->active || hbtp_data->touch_status[i])
 			hbtp_touch_down(hbtp_data, tch);
 		else
@@ -665,14 +664,17 @@ static long hbtp_input_ioctl_handler(struct file *file, unsigned int cmd,
 			return -EFAULT;
 		}
 
+		mutex_lock(&hbtp->mutex);
 		if (copy_from_user(&mt_data, (void *)arg,
 					sizeof(struct hbtp_input_mt))) {
 			pr_err("%s: Error copying data\n", __func__);
+			mutex_unlock(&hbtp->mutex);
 			return -EFAULT;
 		}
 
 		hbtp_input_report_events(hbtp, &mt_data);
 		error = 0;
+		mutex_unlock(&hbtp->mutex);
 		break;
 
 	case HBTP_SET_POWERSTATE:
