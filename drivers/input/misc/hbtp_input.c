@@ -361,6 +361,12 @@ static int hbtp_input_report_events(struct hbtp_data *hbtp_data,
 
 			if (tch->active) {
 				input_report_abs(hbtp_data->input_dev,
+						ABS_MT_POSITION_X,
+						tch->x);
+				input_report_abs(hbtp_data->input_dev,
+						ABS_MT_POSITION_Y,
+						tch->y);
+				input_report_abs(hbtp_data->input_dev,
 						ABS_MT_TOOL_TYPE,
 						tch->tool);
 				input_report_abs(hbtp_data->input_dev,
@@ -375,12 +381,6 @@ static int hbtp_input_report_events(struct hbtp_data *hbtp_data,
 				input_report_abs(hbtp_data->input_dev,
 						ABS_MT_PRESSURE,
 						tch->pressure);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_POSITION_X,
-						tch->x);
-				input_report_abs(hbtp_data->input_dev,
-						ABS_MT_POSITION_Y,
-						tch->y);
 			}
 			hbtp_data->touch_status[i] = tch->active;
 		}
