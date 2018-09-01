@@ -352,8 +352,8 @@ static int hbtp_input_report_events(struct hbtp_data *hbtp_data,
 	int i = 0;
 	struct hbtp_input_touch *tch;
 
-	for (i = 0; i < HBTP_MAX_FINGER; i++) {
-		tch = &(mt_data->touches[i]);
+	do {
+		tch = &(mt_data->touches[i++]);
 		if (tch->active || hbtp_data->touch_status[i]) {
 			input_mt_slot(hbtp_data->input_dev, i);
 			input_mt_report_slot_state(hbtp_data->input_dev,
@@ -384,7 +384,7 @@ static int hbtp_input_report_events(struct hbtp_data *hbtp_data,
 			}
 			hbtp_data->touch_status[i] = tch->active;
 		}
-	}
+	} while (likely(i < HBTP_MAX_FINGER));
 
 	input_sync(hbtp->input_dev);
 
