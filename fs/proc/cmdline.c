@@ -2,6 +2,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/buildvariant.h>
 
 static int cmdline_proc_show(struct seq_file *m, void *v)
 {
@@ -23,6 +24,13 @@ static const struct file_operations cmdline_proc_fops = {
 
 static int __init proc_cmdline_init(void)
 {
+	userdebug = strstr(saved_command_line, "buildvariant=userdebug");
+
+	if (userdebug)
+		pr_warn("build variant userdebug");
+	else
+		pr_warn("build variant user");
+
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;
 }
