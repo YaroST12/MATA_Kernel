@@ -127,7 +127,7 @@ static int mata_dongle_probe(struct hid_device *hid, const struct hid_device_id 
 
 	return 0;
 err_free:
-	return ret;
+	return -ENODEV;
 }
 
 static void mata_dongle_remove(struct hid_device *hid)

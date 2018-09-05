@@ -631,7 +631,7 @@ static int parse_dt_to_pdata(struct device *dev, struct sidecar_platform_data *p
 	return 0;
 fail:
 	gpio_clean(pdata);
-	return rc;
+	return -ENODEV;
 }
 
 #endif
@@ -730,7 +730,7 @@ fail_parse_dt:
 exit:
 	if (err != -EPROBE_DEFER)
 		pr_err("%s fail\n", __func__);
-	return err;
+	return -ENODEV;
 }
 
 static int sidecar_remove(struct platform_device *pdev)
