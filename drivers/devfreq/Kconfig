@@ -279,13 +279,6 @@ config DEVFREQ_MSM_CPUBW_BOOST_FREQ
 	help
 	  Boost frequency for the MSM DDR bus.
 
-config DEVFREQ_MSM_CPUBW_BOOST_FREQ_LIGHT
-	int "Boost freq for cpubw device when cpu load is light"
-	default "0"
-	help
-	  Boost frequency for the MSM DDR bus when there are
-	  no tasks on big cores.
-
 endif
 
 source "drivers/devfreq/event/Kconfig"

@@ -16,7 +16,6 @@
 #include <linux/devfreq_boost.h>
 #include <linux/fb.h>
 #include <linux/input.h>
-#include "../../kernel/sched/sched.h"
 
 struct df_boost_drv {
 	struct boost_dev devices[DEVFREQ_MAX];
@@ -185,27 +184,17 @@ static void devfreq_input_boost(struct work_struct *work)
 
 	if (!cancel_delayed_work_sync(&b->input_unboost)) {
 		struct devfreq *df = b->df;
-		bool boost_light = false;
-		unsigned long boost_freq, boost_freq_light, flags;
+		unsigned long boost_freq, flags;
 
 		spin_lock_irqsave(&b->lock, flags);
 		boost_freq = b->boost_freq;
-		boost_freq_light = b->boost_freq_light;
 		spin_unlock_irqrestore(&b->lock, flags);
 
 		mutex_lock(&df->lock);
-		boost_light = !load_on_big_cores();
-		if (!boost_light) {
-			if (df->max_freq)
-				df->min_freq = min(boost_freq, df->max_freq);
-			else
-				df->min_freq = boost_freq;
-		} else {
-			if (df->max_freq)
-				df->min_freq = min(boost_freq_light, df->max_freq);
-			else
-				df->min_freq = boost_freq_light;
-		}
+		if (df->max_freq)
+			df->min_freq = min(boost_freq, df->max_freq);
+		else
+			df->min_freq = boost_freq;
 		update_devfreq(df);
 		mutex_unlock(&df->lock);
 	}
@@ -399,8 +388,6 @@ static int __init devfreq_boost_init(void)
 
 	d->devices[DEVFREQ_MSM_CPUBW].boost_freq =
 		CONFIG_DEVFREQ_MSM_CPUBW_BOOST_FREQ;
-	d->devices[DEVFREQ_MSM_CPUBW].boost_freq_light =
-		CONFIG_DEVFREQ_MSM_CPUBW_BOOST_FREQ_LIGHT;
 
 	devfreq_boost_input_handler.private = d;
 	ret = input_register_handler(&devfreq_boost_input_handler);
