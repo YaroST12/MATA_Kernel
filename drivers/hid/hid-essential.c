@@ -87,7 +87,7 @@ static int mata_dongle_probe(struct hid_device *hid, const struct hid_device_id 
 {
 	int ret;
 	struct mata_dongle_dev *mdata = NULL;
-	struct sched_param param = { .sched_priority = 6 };
+	struct sched_param param = { .sched_priority = 1 };
 
 	mdata = devm_kzalloc(&hid->dev, sizeof(struct mata_dongle_dev), GFP_KERNEL);
 	if (!mdata)
