@@ -63,8 +63,6 @@ static int ufshcd_tag_req_type(struct request *rq)
 		rq_type = TS_NOT_SUPPORTED;
 	else if (rq->cmd_flags & REQ_FLUSH)
 		rq_type = TS_FLUSH;
-	else if (rq->cmd_flags & REQ_DISCARD)
-		rq_type = TS_DISCARD;
 	else if (rq_data_dir(rq) == READ)
 		rq_type = (rq->cmd_flags & REQ_URGENT) ?
 			TS_URGENT_READ : TS_READ;
@@ -149,56 +147,6 @@ ufshcd_update_query_stats(struct ufs_hba *hba, enum query_opcode opcode, u8 idn)
 		hba->ufs_stats.query_stats_arr[opcode][idn]++;
 }
 
-static void
-__update_io_stat(struct ufs_hba *hba, struct ufshcd_io_stat *io_stat,
-		int transfer_len, int is_start)
-{
-	if (is_start) {
-		u64 diff;
-		io_stat->req_count_started++;
-		io_stat->total_bytes_started += transfer_len;
-		diff = io_stat->req_count_started -
-			io_stat->req_count_completed;
-		if (diff > io_stat->max_diff_req_count) {
-			io_stat->max_diff_req_count = diff;
-		}
-		diff = io_stat->total_bytes_started -
-			io_stat->total_bytes_completed;
-		if (diff > io_stat->max_diff_total_bytes) {
-			io_stat->max_diff_total_bytes = diff;
-		}
-	} else {
-		io_stat->req_count_completed++;
-		io_stat->total_bytes_completed += transfer_len;
-	}
-}
-
-static void
-update_io_stat(struct ufs_hba *hba, int tag, int is_start)
-{
-	struct ufshcd_lrb *lrbp = &hba->lrb[tag];
-	u8 opcode;
-	int transfer_len;
-
-	if (!lrbp->cmd)
-		return;
-	opcode = (u8)(*lrbp->cmd->cmnd);
-	if (opcode != READ_10 && opcode != WRITE_10)
-		return;
-
-	transfer_len = be32_to_cpu(lrbp->ucd_req_ptr->sc.exp_data_transfer_len);
-
-	__update_io_stat(hba, &hba->ufs_stats.io_readwrite, transfer_len,
-			is_start);
-	if (opcode == READ_10) {
-		__update_io_stat(hba, &hba->ufs_stats.io_read, transfer_len,
-				is_start);
-	} else {
-		__update_io_stat(hba, &hba->ufs_stats.io_write, transfer_len,
-				is_start);
-	}
-}
-
 #else
 static inline void ufshcd_update_tag_stats(struct ufs_hba *hba, int tag)
 {
@@ -223,12 +171,6 @@ void ufshcd_update_query_stats(struct ufs_hba *hba,
 			       enum query_opcode opcode, u8 idn)
 {
 }
-
-static void
-update_io_stat(struct ufs_hba *hba, int tag, int is_start)
-{
-}
-
 #endif
 
 #define PWR_INFO_MASK	0xF
@@ -655,11 +597,6 @@ static void ufshcd_dme_cmd_log(struct ufs_hba *hba, char *str, u8 cmd_id)
 	ufshcd_cmd_log(hba, str, "dme", 0xff, cmd_id, 0xff);
 }
 
-static void ufshcd_custom_cmd_log(struct ufs_hba *hba, char *str)
-{
-	ufshcd_cmd_log(hba, str, "custom", 0, 0, 0);
-}
-
 static void ufshcd_print_cmd_log(struct ufs_hba *hba)
 {
 	int i;
@@ -707,10 +644,6 @@ static void __ufshcd_cmd_log(struct ufs_hba *hba, char *str, char *cmd_type,
 }
 
 static void ufshcd_dme_cmd_log(struct ufs_hba *hba, char *str, u8 cmd_id)
-{
-}
-
-static void ufshcd_custom_cmd_log(struct ufs_hba *hba, char *str)
 {
 }
 
@@ -934,18 +867,6 @@ static void ufshcd_print_host_state(struct ufs_hba *hba)
 		return;
 
 	dev_err(hba->dev, "UFS Host state=%d\n", hba->ufshcd_state);
-	if (hba->sdev_ufs_device) {
-		dev_err(hba->dev, " vendor = %.8s\n",
-					hba->sdev_ufs_device->vendor);
-		dev_err(hba->dev, " model = %.16s\n",
-					hba->sdev_ufs_device->model);
-		dev_err(hba->dev, " rev = %.4s\n",
-					hba->sdev_ufs_device->rev);
-		dev_err(hba->dev, " nutrs = %d\n",
-					hba->nutrs);
-		dev_err(hba->dev, " queue_depth = %u\n",
-					hba->sdev_ufs_device->queue_depth);
-	}
 	dev_err(hba->dev, "lrb in use=0x%lx, outstanding reqs=0x%lx tasks=0x%lx\n",
 		hba->lrb_in_use, hba->outstanding_tasks, hba->outstanding_reqs);
 	dev_err(hba->dev, "saved_err=0x%x, saved_uic_err=0x%x, saved_ce_err=0x%x\n",
@@ -2422,7 +2343,6 @@ int ufshcd_send_command(struct ufs_hba *hba, unsigned int task_tag)
 	wmb();
 	ufshcd_cond_add_cmd_trace(hba, task_tag, "send");
 	ufshcd_update_tag_stats(hba, task_tag);
-	update_io_stat(hba, task_tag, 1);
 	return ret;
 }
 
@@ -2496,9 +2416,6 @@ static inline void ufshcd_hba_capabilities(struct ufs_hba *hba)
 	hba->nutrs = (hba->capabilities & MASK_TRANSFER_REQUESTS_SLOTS) + 1;
 	hba->nutmrs =
 	((hba->capabilities & MASK_TASK_MANAGEMENT_REQUEST_SLOTS) >> 16) + 1;
-
-	/* disable auto hibern8 */
-	hba->capabilities &= ~MASK_AUTO_HIBERN8_SUPPORT;
 }
 
 /**
@@ -5220,7 +5137,6 @@ static void ufshcd_set_queue_depth(struct scsi_device *sdev)
 	dev_dbg(hba->dev, "%s: activate tcq with queue depth %d\n",
 			__func__, lun_qdepth);
 	scsi_change_queue_depth(sdev, lun_qdepth);
-	ufs_fix_qdepth_device(hba, sdev);
 }
 
 /*
@@ -5323,9 +5239,7 @@ static int ufshcd_change_queue_depth(struct scsi_device *sdev, int depth)
 
 	if (depth > hba->nutrs)
 		depth = hba->nutrs;
-
-	scsi_change_queue_depth(sdev, depth);
-	return ufs_fix_qdepth_device(hba, sdev);
+	return scsi_change_queue_depth(sdev, depth);
 }
 
 /**
@@ -5674,7 +5588,6 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 		if (cmd) {
 			ufshcd_cond_add_cmd_trace(hba, index, "complete");
 			ufshcd_update_tag_stats_completion(hba, cmd);
-			update_io_stat(hba, index, 0);
 			result = ufshcd_transfer_rsp_status(hba, lrbp);
 			scsi_dma_unmap(cmd);
 			cmd->result = result;
@@ -7841,7 +7754,7 @@ static int ufshcd_query_ioctl(struct ufs_hba *hba, u8 lun, void __user *buffer)
 		switch (ioctl_data->idn) {
 		case QUERY_ATTR_IDN_BOOT_LU_EN:
 			index = 0;
-			if (!att || att > QUERY_ATTR_IDN_BOOT_LU_EN_MAX) {
+			if (att > QUERY_ATTR_IDN_BOOT_LU_EN_MAX) {
 				dev_err(hba->dev,
 					"%s: Illegal ufs query ioctl data, opcode 0x%x, idn 0x%x, att 0x%x\n",
 					__func__, ioctl_data->opcode,
@@ -9686,14 +9599,11 @@ static int ufshcd_devfreq_scale(struct ufs_hba *hba, bool scale_up)
 	if (ret)
 		goto out;
 
-	ufshcd_custom_cmd_log(hba, "waited-for-DB-clear");
-
 	/* scale down the gear before scaling down clocks */
 	if (!scale_up) {
 		ret = ufshcd_scale_gear(hba, false);
 		if (ret)
 			goto clk_scaling_unprepare;
-		ufshcd_custom_cmd_log(hba, "Gear-scaled-down");
 	}
 
 	/*
@@ -9702,32 +9612,21 @@ static int ufshcd_devfreq_scale(struct ufs_hba *hba, bool scale_up)
 	 * racing during clock frequency scaling sequence.
 	 */
 	if (ufshcd_is_auto_hibern8_supported(hba)) {
-		/*
-		 * Scaling prepare acquires the rw_sem: lock
-		 * h8 may sleep in case of errors.
-		 * e.g. link_recovery. Hence, release the rw_sem
-		 * before hibern8.
-		 */
-		up_write(&hba->lock);
 		ret = ufshcd_uic_hibern8_enter(hba);
-		down_write(&hba->lock);
 		if (ret)
 			/* link will be bad state so no need to scale_up_gear */
 			return ret;
-		ufshcd_custom_cmd_log(hba, "Hibern8-entered");
 	}
 
 	ret = ufshcd_scale_clks(hba, scale_up);
 	if (ret)
 		goto scale_up_gear;
-	ufshcd_custom_cmd_log(hba, "Clk-freq-switched");
 
 	if (ufshcd_is_auto_hibern8_supported(hba)) {
 		ret = ufshcd_uic_hibern8_exit(hba);
 		if (ret)
 			/* link will be bad state so no need to scale_up_gear */
 			return ret;
-		ufshcd_custom_cmd_log(hba, "Hibern8-Exited");
 	}
 
 	/* scale up the gear after scaling up clocks */
@@ -9737,7 +9636,6 @@ static int ufshcd_devfreq_scale(struct ufs_hba *hba, bool scale_up)
 			ufshcd_scale_clks(hba, false);
 			goto clk_scaling_unprepare;
 		}
-		ufshcd_custom_cmd_log(hba, "Gear-scaled-up");
 	}
 
 	if (!ret) {
@@ -9840,8 +9738,6 @@ static ssize_t ufshcd_clkscale_enable_store(struct device *dev,
 	cancel_work_sync(&hba->clk_scaling.resume_work);
 
 	hba->clk_scaling.is_allowed = value;
-
-	flush_work(&hba->eh_work);
 
 	if (value) {
 		ufshcd_resume_clkscaling(hba);

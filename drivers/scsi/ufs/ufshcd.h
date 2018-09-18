@@ -3,7 +3,7 @@
  *
  * This code is based on drivers/scsi/ufs/ufshcd.h
  * Copyright (C) 2011-2013 Samsung India Software Operations
- * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
  *
  * Authors:
  *	Santosh Yaraganavi <santosh.sy@samsung.com>
@@ -547,7 +547,6 @@ struct debugfs_files {
 	struct dentry *dbg_print_en;
 	struct dentry *req_stats;
 	struct dentry *query_stats;
-	struct dentry *io_stats;
 	u32 dme_local_attr_id;
 	u32 dme_peer_attr_id;
 	struct dentry *reset_controller;
@@ -571,8 +570,7 @@ enum ts_types {
 	TS_URGENT_READ		= 3,
 	TS_URGENT_WRITE		= 4,
 	TS_FLUSH		= 5,
-	TS_DISCARD		= 6,
-	TS_NUM_STATS		= 7,
+	TS_NUM_STATS		= 6,
 };
 
 /**
@@ -587,24 +585,6 @@ struct ufshcd_req_stat {
 	u64 max;
 	u64 sum;
 	u64 count;
-};
-
-/**
- * struct ufshcd_io_stat - statistics for I/O amount.
- * @req_count_started: total number of I/O requests, which were started.
- * @total_bytes_started: total I/O amount in bytes, which were started.
- * @req_count_completed: total number of I/O request, which were completed.
- * @total_bytes_completed: total I/O amount in bytes, which were completed.
- * @max_diff_req_count: MAX of 'req_count_started - req_count_completed'.
- * @max_diff_total_bytes: MAX of 'total_bytes_started - total_bytes_completed'.
- */
-struct ufshcd_io_stat {
-	u64 req_count_started;
-	u64 total_bytes_started;
-	u64 req_count_completed;
-	u64 total_bytes_completed;
-	u64 max_diff_req_count;
-	u64 max_diff_total_bytes;
 };
 #endif
 
@@ -650,9 +630,6 @@ struct ufs_stats {
 	int err_stats[UFS_ERR_MAX];
 	struct ufshcd_req_stat req_stats[TS_NUM_STATS];
 	int query_stats_arr[UPIU_QUERY_OPCODE_MAX][MAX_QUERY_IDN];
-	struct ufshcd_io_stat io_read;
-	struct ufshcd_io_stat io_write;
-	struct ufshcd_io_stat io_readwrite;
 
 #endif
 	u32 last_intr_status;
