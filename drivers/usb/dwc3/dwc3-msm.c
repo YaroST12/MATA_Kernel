@@ -3380,7 +3380,9 @@ static bool dwc3_device_has_audio_interface(struct usb_device *udev,
 				k < intf->num_altsetting && altsetting;
 				k++, altsetting++) {
 				if (altsetting->desc.bInterfaceClass
-					== USB_CLASS_AUDIO) {
+					== USB_CLASS_AUDIO &&
+					(le16_to_cpu(udev->descriptor.idVendor) == 0x2e17) &&
+					(le16_to_cpu(udev->descriptor.idProduct) == 0xa001)) {
 					dev_info(&udev->dev,
 						"Audio interface found");
 					pm_stay_awake(mdwc->dev);
