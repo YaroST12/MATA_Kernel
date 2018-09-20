@@ -20,7 +20,6 @@
 #include <linux/hid.h>
 #include <linux/module.h>
 #include <linux/switch.h>
-#include <linux/kthread.h>
 
 #include "hid-ids.h"
 
@@ -31,14 +30,12 @@
 struct mata_dongle_dev {
 	struct hid_device *hid;
 	struct switch_dev headset_dev;
-	struct kthread_work irq_work;
-	struct kthread_worker worker;
-	struct task_struct *worker_thread;
+	struct work_struct irq_work;
 	u8 mic_present;
 	u8 headset_present;
 };
 
-static void mata_dongle_irq_work(struct kthread_work *work)
+static void mata_dongle_irq_work(struct work_struct *work)
 {
 	struct mata_dongle_dev *mdata =
 		container_of(work, struct mata_dongle_dev,
@@ -73,7 +70,7 @@ static int mata_dongle_raw_event(struct hid_device *hid, struct hid_report *repo
 			mdata->mic_present = 0;
 		}
 		/* switch speakers should not run in interrupt context */
-		queue_kthread_work(&mdata->worker, &mdata->irq_work);
+		queue_work(system_highpri_wq, &mdata->irq_work);
 		return 1;
 	} else if (report->id == 1) {
 		pr_info("%s: headphones button pressed", __func__);
@@ -87,7 +84,6 @@ static int mata_dongle_probe(struct hid_device *hid, const struct hid_device_id 
 {
 	int ret;
 	struct mata_dongle_dev *mdata = NULL;
-	struct sched_param param = { .sched_priority = 1 };
 
 	mdata = devm_kzalloc(&hid->dev, sizeof(struct mata_dongle_dev), GFP_KERNEL);
 	if (!mdata)
@@ -113,17 +109,7 @@ static int mata_dongle_probe(struct hid_device *hid, const struct hid_device_id 
 		goto err_free;
 	}
 
-	init_kthread_worker(&mdata->worker);
-	mdata->worker_thread = kthread_run(kthread_worker_fn,
-			&mdata->worker, "hid_essential_worker");
-	if (IS_ERR(mdata->worker_thread)) {
-		pr_err("unable to start mata_dongle thread\n");
-		goto err_free;
-	}
-
-	init_kthread_work(&mdata->irq_work, mata_dongle_irq_work);
-
-	sched_setscheduler(mdata->worker_thread, SCHED_FIFO, &param);
+	INIT_WORK(&mdata->irq_work, mata_dongle_irq_work);
 
 	return 0;
 err_free:
@@ -137,7 +123,6 @@ static void mata_dongle_remove(struct hid_device *hid)
 		pr_err("Invalid params\n");
 		goto end;
 	}
-	kthread_stop(mdata->worker_thread);
 	switch_dev_unregister(&mdata->headset_dev);
 	hid_hw_stop(hid);
 end:
