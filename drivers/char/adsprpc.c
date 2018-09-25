@@ -43,6 +43,7 @@
 #include <linux/kref.h>
 #include <linux/sort.h>
 #include <linux/msm_dma_iommu_mapping.h>
+#include <linux/buildvariant.h>
 #include <asm/dma-iommu.h>
 #include <soc/qcom/scm.h>
 #include "adsprpc_compat.h"
@@ -57,6 +58,7 @@
 #define ADSP_MMAP_REMOTE_HEAP_ADDR 8
 #define FASTRPC_ENOSUCH 39
 #define VMID_SSC_Q6     38
+#define VMID_SSC_Q6_OLD 5
 #define VMID_ADSP_Q6    6
 #define AC_VM_ADSP_HEAP_SHARED 33
 #define DEBUGFS_SIZE 1024
@@ -228,6 +230,7 @@ struct fastrpc_channel_ctx {
 	int prevssrcount;
 	int issubsystemup;
 	int vmid;
+	int vmid_old;
 	int heap_vmid;
 	int ramdumpenabled;
 	void *remoteheap_ramdump_dev;
@@ -331,6 +334,7 @@ static struct fastrpc_channel_ctx gcinfo[NUM_CHANNELS] = {
 		.link.link_info.edge = "dsps",
 		.link.link_info.transport = "smem",
 		.vmid = VMID_SSC_Q6,
+		.vmid_old = VMID_SSC_Q6_OLD,
 	},
 	{
 		.name = "cdsprpc-smd",
@@ -370,7 +374,10 @@ static void fastrpc_buf_free(struct fastrpc_buf *buf, int cache)
 
 		if (fl->sctx->smmu.cb)
 			buf->phys &= ~((uint64_t)fl->sctx->smmu.cb << 32);
-		vmid = fl->apps->channel[fl->cid].vmid;
+		if (!userdebug)
+			vmid = fl->apps->channel[fl->cid].vmid;
+		else
+			vmid = fl->apps->channel[fl->cid].vmid_old;
 		if (vmid) {
 			int srcVM[2] = {VMID_HLOS, vmid};
 
@@ -582,7 +589,10 @@ static void fastrpc_mmap_free(struct fastrpc_mmap *map)
 					map->table->nents, DMA_BIDIRECTIONAL,
 					map->buf);
 		}
-		vmid = fl->apps->channel[fl->cid].vmid;
+		if (!userdebug)
+			vmid = fl->apps->channel[fl->cid].vmid;
+		else
+			vmid = fl->apps->channel[fl->cid].vmid_old;
 		if (vmid && map->phys) {
 			int srcVM[2] = {VMID_HLOS, vmid};
 
@@ -711,7 +721,10 @@ static int fastrpc_mmap_create(struct fastrpc_file *fl, int fd, unsigned attr,
 		} else {
 			map->size = buf_page_size(len);
 		}
-		vmid = fl->apps->channel[fl->cid].vmid;
+		if (!userdebug)
+			vmid = fl->apps->channel[fl->cid].vmid;
+		else
+			vmid = fl->apps->channel[fl->cid].vmid_old;
 		if (vmid) {
 			int srcVM[1] = {VMID_HLOS};
 			int destVM[2] = {VMID_HLOS, vmid};
@@ -783,7 +796,10 @@ static int fastrpc_buf_alloc(struct fastrpc_file *fl, size_t size,
 		goto bail;
 	if (fl->sctx->smmu.cb)
 		buf->phys += ((uint64_t)fl->sctx->smmu.cb << 32);
-	vmid = fl->apps->channel[fl->cid].vmid;
+	if (!userdebug)
+		vmid = fl->apps->channel[fl->cid].vmid;
+	else
+		vmid = fl->apps->channel[fl->cid].vmid_old;
 	if (vmid) {
 		int srcVM[1] = {VMID_HLOS};
 		int destVM[2] = {VMID_HLOS, vmid};
