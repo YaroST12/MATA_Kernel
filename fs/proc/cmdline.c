@@ -2,6 +2,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/buildvariant.h>
 
 static int cmdline_proc_show(struct seq_file *m, void *v)
 {
@@ -21,8 +22,28 @@ static const struct file_operations cmdline_proc_fops = {
 	.release	= single_release,
 };
 
+bool is_userdebug(void)
+{
+	/* Defined in buildvariant.h */
+	if (!checked) {
+		userdebug =
+			strstr(saved_command_line, "buildvariant=userdebug") ||
+			strstr(saved_command_line, "buildvariant=eng");
+
+		if (userdebug)
+			pr_warn("build variant userdebug or eng");
+		else
+			pr_warn("build variant user");
+
+		checked = true;
+	}
+
+	return userdebug;
+}
+
 static int __init proc_cmdline_init(void)
 {
+	is_userdebug();
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;
 }
