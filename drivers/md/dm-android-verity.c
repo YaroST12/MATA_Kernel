@@ -30,7 +30,6 @@
 #include <linux/reboot.h>
 #include <linux/string.h>
 #include <linux/vmalloc.h>
-#include <linux/buildvariant.h>
 
 #include <asm/setup.h>
 #include <crypto/hash.h>
@@ -114,14 +113,6 @@ static inline bool is_userdebug(void)
 	static const char typeuserdebug[]  = "userdebug";
 
 	return !strncmp(buildvariant, typeuserdebug, sizeof(typeuserdebug));
-}
-
-static void set_userdebug_hack(void)
-{
-	/* Defined in a buildvariant.h */
-	userdebug = is_eng() || is_userdebug();
-	if (userdebug)
-		pr_info("%s: userdebug build", __func__);
 }
 
 static inline bool is_unlocked(void)
@@ -938,8 +929,6 @@ static int __init dm_android_verity_init(void)
 			PTR_ERR(debug_dir));
 		debugfs_remove_recursive(debug_dir);
 	}
-
-	set_userdebug_hack();
 
 end:
 	return r;
