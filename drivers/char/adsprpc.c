@@ -374,10 +374,13 @@ static void fastrpc_buf_free(struct fastrpc_buf *buf, int cache)
 
 		if (fl->sctx->smmu.cb)
 			buf->phys &= ~((uint64_t)fl->sctx->smmu.cb << 32);
-		if (!userdebug)
+		if (!is_userdebug())
 			vmid = fl->apps->channel[fl->cid].vmid;
 		else
 			vmid = fl->apps->channel[fl->cid].vmid_old;
+
+		pr_info("%s: vmid = %i, userdebug: %i", __func__, vmid,
+				is_userdebug());
 		if (vmid) {
 			int srcVM[2] = {VMID_HLOS, vmid};
 
@@ -589,10 +592,12 @@ static void fastrpc_mmap_free(struct fastrpc_mmap *map)
 					map->table->nents, DMA_BIDIRECTIONAL,
 					map->buf);
 		}
-		if (!userdebug)
+		if (!is_userdebug())
 			vmid = fl->apps->channel[fl->cid].vmid;
 		else
 			vmid = fl->apps->channel[fl->cid].vmid_old;
+		pr_info("%s: vmid = %i, userdebug: %i", __func__, vmid,
+				is_userdebug());
 		if (vmid && map->phys) {
 			int srcVM[2] = {VMID_HLOS, vmid};
 
@@ -721,10 +726,12 @@ static int fastrpc_mmap_create(struct fastrpc_file *fl, int fd, unsigned attr,
 		} else {
 			map->size = buf_page_size(len);
 		}
-		if (!userdebug)
+		if (!is_userdebug())
 			vmid = fl->apps->channel[fl->cid].vmid;
 		else
 			vmid = fl->apps->channel[fl->cid].vmid_old;
+		pr_info("%s: vmid = %i, userdebug: %i", __func__, vmid,
+				is_userdebug());
 		if (vmid) {
 			int srcVM[1] = {VMID_HLOS};
 			int destVM[2] = {VMID_HLOS, vmid};
@@ -796,10 +803,12 @@ static int fastrpc_buf_alloc(struct fastrpc_file *fl, size_t size,
 		goto bail;
 	if (fl->sctx->smmu.cb)
 		buf->phys += ((uint64_t)fl->sctx->smmu.cb << 32);
-	if (!userdebug)
+	if (!is_userdebug())
 		vmid = fl->apps->channel[fl->cid].vmid;
 	else
 		vmid = fl->apps->channel[fl->cid].vmid_old;
+	pr_info("%s: vmid = %i, userdebug: %i", __func__, vmid,
+				is_userdebug());
 	if (vmid) {
 		int srcVM[1] = {VMID_HLOS};
 		int destVM[2] = {VMID_HLOS, vmid};
