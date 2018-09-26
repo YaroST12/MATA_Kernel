@@ -22,17 +22,23 @@ static const struct file_operations cmdline_proc_fops = {
 	.release	= single_release,
 };
 
-static int __init proc_cmdline_init(void)
+bool is_userdebug(void)
 {
 	/* Defined in buildvariant.h */
-	userdebug = strstr(saved_command_line, "buildvariant=userdebug") ||
-		strstr(saved_command_line, "buildvariant=eng");
+	bool userdebug =
+		(strstr(saved_command_line, "buildvariant=userdebug") ||
+		strstr(saved_command_line, "buildvariant=eng"));
 
 	if (userdebug)
 		pr_warn("build variant userdebug or eng");
 	else
 		pr_warn("build variant user");
 
+	return userdebug;
+}
+
+static int __init proc_cmdline_init(void)
+{
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;
 }

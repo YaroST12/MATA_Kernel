@@ -1,3 +1,3 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 
-static bool userdebug;
+extern bool is_userdebug(void);
