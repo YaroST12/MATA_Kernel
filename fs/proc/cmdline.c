@@ -25,20 +25,25 @@ static const struct file_operations cmdline_proc_fops = {
 bool is_userdebug(void)
 {
 	/* Defined in buildvariant.h */
-	bool userdebug =
-		(strstr(saved_command_line, "buildvariant=userdebug") ||
-		strstr(saved_command_line, "buildvariant=eng"));
+	if (!checked) {
+		userdebug =
+			strstr(saved_command_line, "buildvariant=userdebug") ||
+			strstr(saved_command_line, "buildvariant=eng");
 
-	if (userdebug)
-		pr_warn("build variant userdebug or eng");
-	else
-		pr_warn("build variant user");
+		if (userdebug)
+			pr_warn("build variant userdebug or eng");
+		else
+			pr_warn("build variant user");
+
+		checked = true;
+	}
 
 	return userdebug;
 }
 
 static int __init proc_cmdline_init(void)
 {
+	is_userdebug();
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;
 }
