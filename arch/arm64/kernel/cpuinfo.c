@@ -35,6 +35,7 @@
 #include <linux/smp.h>
 #include <linux/delay.h>
 #include <linux/of_fdt.h>
+#include <linux/buildvariant.h>
 
 char* (*arch_read_hardware_id)(void);
 EXPORT_SYMBOL(arch_read_hardware_id);
@@ -275,4 +276,25 @@ void __init cpuinfo_store_boot_cpu(void)
 
 	boot_cpu_data = *info;
 	init_cpu_features(&boot_cpu_data);
+}
+
+static int __init get_userdebug(char *cmdline)
+{
+	/* Defined in buildvariant.h */
+	userdebug = !strcmp(cmdline, "userdebug") ||
+		!strcmp(cmdline, "eng");
+
+	if (userdebug)
+		pr_warn("build variant userdebug or eng");
+	else
+		pr_warn("build variant user");
+
+	return 0;
+}
+
+__setup("buildvariant=", get_userdebug);
+
+bool is_userdebug(void)
+{
+	return userdebug;
 }
