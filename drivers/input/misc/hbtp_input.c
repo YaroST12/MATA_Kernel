@@ -668,17 +668,14 @@ static long hbtp_input_ioctl_handler(struct file *file, unsigned int cmd,
 			return -EFAULT;
 		}
 
-		mutex_lock(&hbtp->mutex);
 		if (copy_from_user(&mt_data, (void *)arg,
 					sizeof(struct hbtp_input_mt))) {
 			pr_err("%s: Error copying data\n", __func__);
-			mutex_unlock(&hbtp->mutex);
 			return -EFAULT;
 		}
 
 		hbtp_input_report_events(hbtp, &mt_data);
 		error = 0;
-		mutex_unlock(&hbtp->mutex);
 		break;
 
 	case HBTP_SET_POWERSTATE:
