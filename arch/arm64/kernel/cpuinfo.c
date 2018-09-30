@@ -277,3 +277,27 @@ void __init cpuinfo_store_boot_cpu(void)
 	boot_cpu_data = *info;
 	init_cpu_features(&boot_cpu_data);
 }
+
+static int __init get_touch_hack(char *cmdline)
+{
+	vmid_hack = true;
+	return 1;
+}
+__setup("needs_touch_hack", get_touch_hack);
+
+static int __init get_cam_hack(char *cmdline)
+{
+	cam_hack = true;
+	return 1;
+}
+__setup("needs_cam_hack", get_cam_hack);
+
+bool needs_touch_hack(void)
+{
+	return vmid_hack;
+}
+
+bool needs_cam_hack(void)
+{
+	return cam_hack;
+}
