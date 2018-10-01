@@ -144,19 +144,17 @@ static void simple_lmk_reclaim_work(struct work_struct *work)
 
 void simple_lmk_force_reclaim(void)
 {
-	unsigned long mib_freed;
-
-	if (time_before(jiffies, last_reclaim_jiffies + LMK_OOM_TIMEOUT))
-		return;
+	unsigned long mib_freed = 0;
 
 	/* Only one memory reclaim event can occur at a time */
 	if (!mutex_trylock(&reclaim_lock))
 		return;
 
-	mib_freed = do_lmk_reclaim(MIN_FREE_PAGES);
+	if (time_after_eq(jiffies, last_reclaim_jiffies + LMK_OOM_TIMEOUT))
+		mib_freed = do_lmk_reclaim(MIN_FREE_PAGES);
 	mutex_unlock(&reclaim_lock);
 
-	if (likely(mib_freed))
+	if (mib_freed)
 		pr_info("oom: freed %lu MiB\n", mib_freed);
 }
 
