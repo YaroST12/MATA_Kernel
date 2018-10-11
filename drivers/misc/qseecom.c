@@ -8752,7 +8752,7 @@ static int qseecom_remove(struct platform_device *pdev)
 		if (!kclient->handle) {
 			list_del(&kclient->list);
 			kzfree(kclient);
-		break;
+			break;
 		}
 
 		list_del(&kclient->list);
